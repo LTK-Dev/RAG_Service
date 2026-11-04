@@ -1,0 +1,40 @@
+[tool.uv.workspace]
+members = [
+    "libs/*",
+    "services/docmanager",
+    "services/rag_service",
+]
+
+[project]
+name = "rag-project"
+version = "0.1.0"
+requires-python = ">=3.10"
+
+[project.optional-dependencies]
+dev = ["pre-commit", "pytest-dotenv"]
+
+[tool.pytest.ini_options]
+pythonpath = [".", "services", "libs"]
+
+[tool.ruff]
+extend-exclude = ["libs", "services"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "UP"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.uv.sources]
+postgres = { workspace = true }
+logger = { workspace = true }
+storage = { workspace = true }
+parser = { workspace = true }
+llm = { workspace = true }
+open_search = { workspace = true }
+
+
+[tool.mypy]
+explicit_package_bases = true
+namespace_packages = true
+ignore_missing_imports = true

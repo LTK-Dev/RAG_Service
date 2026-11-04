@@ -1,0 +1,42 @@
+[project]
+name = "docmanager"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Le Tuan Kiet", email = "letuankiet.hn@gmail.com" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "python-multipart",
+    # Local Libs
+    "postgres",
+    "logger",
+    "storage",
+    "parser",
+    "llm",
+    "open_search",
+    "pytest>=8.4.2",
+    "httpx>=0.28.1",
+    "pydantic-settings",
+    "langchain-text-splitters>=1.0.0",
+]
+
+
+[tool.uv.sources]
+postgres = { workspace = true }
+logger = { workspace = true }
+storage = { workspace = true }
+parser = { workspace = true }
+llm = { workspace = true }
+open_search = { workspace = true }
+
+
+[project.scripts]
+docmanager = "docmanager:main"
+
+[build-system]
+requires = ["uv_build>=0.9.5,<0.10.0"]
+build-backend = "uv_build"

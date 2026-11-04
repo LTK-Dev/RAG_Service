@@ -1,0 +1,19 @@
+server:
+  host: "0.0.0.0"
+  port: 3002
+  reload: True
+
+embedding:
+  model: "Alibaba-NLP/gte-multilingual-base"
+
+llm:
+  temperature: 0.1
+  top_p: 0.9
+
+opensearch:
+  host: "opensearch_node"
+  port: 9200
+  index_name: "rag_documents"
+  use_ssl: False
+  verify_certs: False
+  ssl_assert_hostname: False

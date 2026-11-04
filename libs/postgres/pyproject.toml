@@ -1,0 +1,23 @@
+[project]
+name = "postgres"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Le Tuan Kiet", email = "letuankiet.hn@gmail.com" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "alembic>=1.17.1",
+    "psycopg>=3.0.0",
+    "psycopg[binary]",
+    "pydantic",
+    "sqlalchemy>=2.0.44",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[build-system]
+requires = ["uv_build>=0.9.5,<0.10.0"]
+build-backend = "uv_build"

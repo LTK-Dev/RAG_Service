@@ -1,0 +1,18 @@
+[project]
+name = "llm"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Le Tuan Kiet", email = "letuankiet.hn@gmail.com" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "litellm>=1.79.3",
+    "pydantic-settings>=2.11.0",
+    "sentence-transformers>=5.1.2",
+]
+
+[build-system]
+requires = ["uv_build>=0.9.5,<0.10.0"]
+build-backend = "uv_build"

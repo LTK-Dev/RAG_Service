@@ -1,0 +1,33 @@
+[project]
+name = "rag-service"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Le Tuan Kiet", email = "letuankiet.hn@gmail.com" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.121.0",
+    "pydantic-settings>=2.11.0",
+    "uvicorn>=0.38.0",
+    "uvicorn[standard]",
+    # Local Libs
+    "logger",
+    "open_search",
+    "llm"
+]
+
+
+[tool.uv.sources]
+logger = { workspace = true }
+llm = { workspace = true }
+open_search = { workspace = true }
+
+
+[project.scripts]
+rag_service = "rag_service:main"
+
+[build-system]
+requires = ["uv_build>=0.9.5,<0.10.0"]
+build-backend = "uv_build"

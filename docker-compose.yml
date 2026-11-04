@@ -1,0 +1,123 @@
+volumes:
+  postgres_data:
+  minio_data:
+  opensearch_data:
+
+services:
+  postgres_db:
+    image: postgres:14.19-alpine3.21
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: ${POSTGRES__USER}
+      POSTGRES_PASSWORD: ${POSTGRES__PASSWORD}
+      POSTGRES_DB: ${POSTGRES__DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES__USER} -d ${POSTGRES__DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio_server
+    environment:
+      MINIO_ROOT_USER: ${MINIO__ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO__SECRET_KEY}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+
+
+  opensearch_node:
+    image: opensearchproject/opensearch:2.11.0
+    container_name: rag_opensearch
+    environment:
+      - discovery.type=single-node
+      - DISABLE_SECURITY_PLUGIN=true
+      - DISABLE_INSTALL_DEMO_CONFIG=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+    volumes:
+      - opensearch_data:/usr/share/opensearch/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  opensearch_dashboard:
+    image: opensearchproject/opensearch-dashboards:2.11.0
+    container_name: opensearch_dashboard
+    ports:
+      - "5601:5601"
+    environment:
+      OPENSEARCH_HOSTS: '["http://opensearch_node:9200"]'
+      DISABLE_SECURITY_DASHBOARDS_PLUGIN: "true"
+    depends_on:
+      opensearch_node:
+        condition: service_healthy
+
+  docmanager:
+    container_name: docmanager
+    build:
+      context: .
+      dockerfile: ./services/docmanager/src/docmanager/Dockerfile
+    command: ["uv", "run", "docmanager"]
+    environment:
+      POSTGRES__USER: ${POSTGRES__USER}
+      POSTGRES__PASSWORD: ${POSTGRES__PASSWORD}
+      POSTGRES__DB: ${POSTGRES__DB}
+
+      MINIO__ACCESS_KEY: ${MINIO__ACCESS_KEY}
+      MINIO__SECRET_KEY: ${MINIO__SECRET_KEY}
+
+      OPENSEARCH__HTTP_AUTH_USER: ${OPENSEARCH__HTTP_AUTH_USER}
+      OPENSEARCH__HTTP_AUTH_PASS: ${OPENSEARCH__HTTP_AUTH_PASS}
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres_db:
+        condition: service_healthy
+      minio:
+        condition: service_started
+      opensearch_node:
+        condition: service_healthy
+    volumes:
+      - ./services/docmanager:/app/services/docmanager
+      - ./services/docmanager/src/docmanager/settings.yaml:/app/services/docmanager/src/docmanager/settings.yaml
+      - ./libs:/app/libs
+      - ./logs:/app/logs
+      - ./.cache/huggingface:/root/.cache/huggingface
+
+
+  rag_service:
+    container_name: rag_service
+    build:
+      context: .
+      dockerfile: ./services/rag_service/src/rag_service/Dockerfile
+    command: ["uv", "run", "rag_service"]
+    environment:
+      LLM__API_KEY: ${GOOGLE_API_KEY}
+
+      OPENSEARCH__HTTP_AUTH_USER: ${OPENSEARCH__HTTP_AUTH_USER}
+      OPENSEARCH__HTTP_AUTH_PASS: ${OPENSEARCH__HTTP_AUTH_PASS}
+    ports:
+      - "3002:3002"
+    depends_on:
+      opensearch_node:
+        condition: service_healthy
+    volumes:
+      - ./services/rag_service:/app/services/rag_service
+      - ./services/rag_service/src/rag_service/settings.yaml:/app/services/rag_service/src/rag_service/settings.yaml
+      - ./libs:/app/libs
+      - ./logs:/app/logs
+      - ./.cache/huggingface:/root/.cache/huggingface
